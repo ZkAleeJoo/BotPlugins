@@ -4,10 +4,10 @@ module.exports = {
     name: Events.ClientReady,
     once: true, 
     execute(client) {
-        console.log(`Listo para liga pokemon - ${client.user.tag} va en camino!`);
+        console.log(`Bot Prendido ${client.user.tag}`);
 
         const activities = [
-            { name: '💎 /help - zenith.com', type: ActivityType.Playing },
+            { name: 'Spigot/Modrinth', type: ActivityType.Playing },
         ];
 
         let i = 0;
