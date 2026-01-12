@@ -37,7 +37,6 @@ const rest = new REST().setToken(process.env.TOKEN);
 		//	{ body: commands },
 		//);
 
-		console.log(`✅ ¡Éxito! Se han registrado ${data.length} comandos GLOBALMENTE.`);
 	} catch (error) {
 		console.error('❌ Error fatal durante el despliegue:', error);
 	}
