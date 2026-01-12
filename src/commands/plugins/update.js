@@ -5,21 +5,23 @@ const MIS_PLUGINS = [
         name: 'MaxStaff - GUI And more', 
         value: 'maxstaff_gui_and_more', 
         url: 'https://www.spigotmc.org/resources/maxstaff-gui-and-more.130851/', 
+        thumbnail: 'https://www.spigotmc.org/data/resource_icons/130/130851.jpg?1766411128', 
         color: '#ae00fe' 
     },
     { 
         name: 'ClearLag+', 
         value: 'clearlag', 
         url: 'https://www.spigotmc.org/resources/clearlag.122239/', 
+        thumbnail: 'https://www.spigotmc.org/data/resource_icons/122/122239.jpg?1765979700',
         color: '#f8f400' 
     },
     { 
         name: 'SimpleAds', 
         value: 'simpleads', 
         url: 'https://www.spigotmc.org/resources/simpleads.131350/', 
+        thumbnail: 'https://www.spigotmc.org/data/resource_icons/131/131350.jpg?1767318794',
         color: '#000cf8' 
     }
-
 ];
 
 module.exports = {
@@ -40,13 +42,15 @@ module.exports = {
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('descripcion')
-                .setDescription('Describe los cambios (puedes usar \n para saltos de línea)')
+                .setDescription('Describe los cambios (puedes usar \\n para saltos de línea)')
                 .setRequired(true)),
 
     async execute(interaction) {
         const pluginValue = interaction.options.getString('plugin');
         const version = interaction.options.getString('version');
-        const changes = interaction.options.getString('descripcion');
+        
+        const rawChanges = interaction.options.getString('descripcion');
+        const changes = rawChanges.replace(/\\n/g, '\n');
 
         const pluginData = MIS_PLUGINS.find(p => p.value === pluginValue);
         
@@ -61,10 +65,9 @@ module.exports = {
         }
 
         const announcementEmbed = new EmbedBuilder()
-            .setTitle(`🚀 ¡Nueva Actualización: ${pluginData.name}!`)
-            .setURL(pluginData.url)
+            .setTitle(`Update: ${pluginData.name}!`)
             .setColor(pluginData.color)
-            .setThumbnail(interaction.client.user.displayAvatarURL())
+            .setThumbnail(pluginData.thumbnail || interaction.client.user.displayAvatarURL())
             .addFields(
                 { name: '📦 Versión', value: `\`${version}\``, inline: true },
                 { name: '🔗 Enlace', value: `[SpigotMC](${pluginData.url})`, inline: true },
