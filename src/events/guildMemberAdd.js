@@ -53,7 +53,7 @@ module.exports = {
         const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'welcome-image.png' });
 
         channel.send({
-            content: `Bienvenido ${member} al servidor`,
+            content: `Bienvenido ${member} al servidor \`|\` No te olvides de leer las <#1448310984132526100> - <#1448316267122655353>`,
             files: [attachment]
         });
     },
