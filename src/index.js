@@ -2,8 +2,6 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -41,23 +39,6 @@ for (const file of eventFiles) {
         client.on(event.name, (...args) => event.execute(...args));
     }
 }
-
-const app = express();
-app.use(cors());
-
-const PORT = process.env.PORT || 3000;
-
-app.get('/api/stats', (req, res) => {
-    res.json({
-        servers: client.guilds.cache.size,
-        users: client.guilds.cache.reduce((a, g) => a + g.memberCount, 0),
-        ping: client.ws.ping
-    });
-});
-
-app.listen(PORT, '0.0.0.0', () => { 
-    console.log(`📡 API del Bot escuchando en el puerto ${PORT}`);
-});
 
 client.login(process.env.TOKEN);
 
