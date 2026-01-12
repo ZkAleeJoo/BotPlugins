@@ -4,41 +4,42 @@ module.exports = {
     name: Events.InteractionCreate,
     once: false,
     async execute(interaction) {
-        // --- MANEJO DE COMANDOS DE CHAT ---
+        // --- MANEJO DE COMANDOS ---
         if (interaction.isChatInputCommand()) {
             const command = interaction.client.commands.get(interaction.commandName);
             if (!command) return;
-            try {
-                await command.execute(interaction);
-            } catch (error) {
-                console.error(error);
-                await interaction.reply({ content: '❌ Error al ejecutar el comando.', flags: 64 }).catch(() => {});
-            }
+            try { await command.execute(interaction); } catch (e) { console.error(e); }
         }
 
         // --- SISTEMA DE AUTOROLES ---
-        if (interaction.isButton()) {
-            if (!interaction.customId.startsWith('role_')) return;
-
-            const roleId = interaction.customId.replace('role_', '');
-            const role = interaction.guild.roles.cache.get(roleId);
-
-            if (!role) {
-                return interaction.reply({ content: '❌ Este rol ya no existe.', ephemeral: true });
-            }
+        if (interaction.isStringSelectMenu() && interaction.customId === 'autorole_menu') {
+            const selectedRoles = interaction.values; 
+            const allAutoroles = [
+                '1460373287338246392', '1460373363431047250', 
+                '1460373389993709740', '1460373427113300028', 
+                '1460373461452063004'
+            ];
 
             try {
                 const member = interaction.member;
-                if (member.roles.cache.has(roleId)) {
-                    await member.roles.remove(roleId);
-                    await interaction.reply({ content: `✅ Se te ha quitado el rol **${role.name}**.`, ephemeral: true });
-                } else {
-                    await member.roles.add(roleId);
-                    await interaction.reply({ content: `✅ Ahora tienes el rol **${role.name}**.`, ephemeral: true });
-                }
+                const currentRoles = member.roles.cache.map(r => r.id);
+                
+                const otherRoles = currentRoles.filter(id => !allAutoroles.includes(id));
+                
+                const finalRoles = [...otherRoles, ...selectedRoles];
+
+                await member.roles.set(finalRoles);
+
+                await interaction.reply({ 
+                    content: 'Tus preferencias han sido actualizadas con éxito.', 
+                    ephemeral: true 
+                });
             } catch (error) {
-                console.error('Error al gestionar roles:', error);
-                await interaction.reply({ content: '❌ No tengo permisos suficientes para gestionar este rol.', ephemeral: true });
+                console.error('Error en Autoroles:', error);
+                await interaction.reply({ 
+                    content: 'Error de permisos al actualizar tus roles.', 
+                    ephemeral: true 
+                });
             }
         }
     },
