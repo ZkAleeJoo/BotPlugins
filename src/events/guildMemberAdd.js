@@ -1,6 +1,5 @@
 const { Events, AttachmentBuilder } = require('discord.js');
-const { createCanvas, loadImage, registerFont } = require('canvas');
-const path = require('path');
+const { createCanvas, loadImage } = require('canvas');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -8,13 +7,8 @@ module.exports = {
     async execute(member) {
         const roleId = process.env.MEMBER_ROLE_ID;
         const role = member.guild.roles.cache.get(roleId);
-        
         if (role) {
-            try {
-                await member.roles.add(role);
-            } catch (error) {
-                console.error('Error al asignar el rol de miembro:', error);
-            }
+            try { await member.roles.add(role); } catch (e) { console.error('Error Rol:', e); }
         }
 
         const channelId = process.env.WELCOME_CHANNEL_ID;
@@ -27,16 +21,19 @@ module.exports = {
         const background = await loadImage('https://i.pinimg.com/736x/58/1a/45/581a4501e54abe4fd2efcff15573fd3e.jpg'); 
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
+        ctx.save(); 
+        
         ctx.beginPath();
-        ctx.arc(125, 125, 80, 0, Math.PI * 2, true);
+        ctx.arc(125, 125, 80, 0, Math.PI * 2, true); 
         ctx.closePath();
-        ctx.clip();
+        ctx.clip(); 
 
-        const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 256 }));
+        const avatarURL = member.user.displayAvatarURL({ extension: 'png', size: 256 });
+        const avatar = await loadImage(avatarURL);
         ctx.drawImage(avatar, 45, 45, 160, 160);
 
         ctx.restore(); 
-        
+
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 45px sans-serif';
         ctx.fillText('WELCOME', 250, 100);
@@ -53,7 +50,7 @@ module.exports = {
         const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'welcome-image.png' });
 
         channel.send({
-            content: `Bienvenido ${member} al servidor \`|\` No te olvides de leer las <#1448310984132526100> - <#1448316267122655353>`,
+            content: `Bienvenido ${member} al servidor | No te olvides de leer las <#1448310984132526100> - <#1448316267122655353>`,
             files: [attachment]
         });
     },
