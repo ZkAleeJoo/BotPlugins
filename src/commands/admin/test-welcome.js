@@ -12,7 +12,7 @@ module.exports = {
         try {
             await interaction.reply({ 
                 content: '⏳ Simulando evento de bienvenida...', 
-                ephemeral: true 
+                flags: 64
             });
 
 
@@ -22,7 +22,7 @@ module.exports = {
             console.error('Error al simular bienvenida:', error);
             await interaction.editReply({ 
                 content: '❌ Ocurrió un error al intentar simular el evento.', 
-                ephemeral: true 
+                flags: 64
             });
         }
     },

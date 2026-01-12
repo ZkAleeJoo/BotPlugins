@@ -10,7 +10,7 @@ module.exports = {
         const channelId = '1460372642765738268'; 
         const channel = interaction.client.channels.cache.get(channelId);
 
-        if (!channel) return interaction.reply({ content: 'No se pudo localizar el canal.', ephemeral: true });
+        if (!channel) return interaction.reply({ content: 'No se pudo localizar el canal.', flags: 64});
 
         const embed = new EmbedBuilder()
             .setAuthor({ 
@@ -52,6 +52,6 @@ module.exports = {
         const row = new ActionRowBuilder().addComponents(selectMenu);
 
         await channel.send({ embeds: [embed], components: [row] });
-        await interaction.reply({ content: 'Panel desplegado con éxito.', ephemeral: true });
+        await interaction.reply({ content: 'Panel desplegado con éxito.', flags: 64});
     },
 };

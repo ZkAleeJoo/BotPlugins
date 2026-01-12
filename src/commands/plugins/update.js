@@ -60,7 +60,7 @@ module.exports = {
         if (!announcementChannel) {
             return interaction.reply({ 
                 content: `❌ **Error:** No encontré el canal con ID \`${channelId}\`.`, 
-                ephemeral: true 
+                flags: 64
             });
         }
 
@@ -75,21 +75,21 @@ module.exports = {
             )
             .setTimestamp()
             .setFooter({ 
-                text: `Anunciado por ${interaction.user.username}`, 
-                iconURL: interaction.user.displayAvatarURL() 
+                text: `Anuncio enviado desde Spigot`, 
+                iconURL: "https://static.spigotmc.org/img/spigot.png"
             });
 
         try {
-            await announcementChannel.send({ embeds: [announcementEmbed] });
+            await announcementChannel.send({ content: '> \`|\` <@&1460373287338246392>', embeds: [announcementEmbed] });
             await interaction.reply({ 
                 content: `✅ Anuncio de **${pluginData.name}** enviado correctamente a <#${channelId}>.`, 
-                ephemeral: true 
+                flags: 64
             });
         } catch (error) {
             console.error(error);
             await interaction.reply({ 
                 content: '❌ Error al enviar el anuncio. Revisa los permisos del bot.', 
-                ephemeral: true 
+                flags: 64
             });
         }
     },

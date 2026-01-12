@@ -32,13 +32,13 @@ module.exports = {
 
                 await interaction.reply({ 
                     content: 'Tus preferencias han sido actualizadas con éxito.', 
-                    ephemeral: true 
+                    flags: 64
                 });
             } catch (error) {
                 console.error('Error en Autoroles:', error);
                 await interaction.reply({ 
                     content: 'Error de permisos al actualizar tus roles.', 
-                    ephemeral: true 
+                    flags: 64
                 });
             }
         }
