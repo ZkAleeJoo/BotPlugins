@@ -1,7 +1,4 @@
-const { Events, EmbedBuilder } = require('discord.js');
-const { createPremiumCode } = require('../utils/dataHandler');
-const fs = require('fs');
-const path = require('path');
+const { Events } = require('discord.js');
 
 module.exports = {
     name: Events.InteractionCreate,
