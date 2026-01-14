@@ -161,7 +161,7 @@ module.exports = {
         }
 
 
-        // --- SISTEMA DE SUGERENCIAS: ---
+        // --- SISTEMA DE SUGERENCIAS ---
         if (interaction.isModalSubmit() && interaction.customId === 'suggestion_modal') {
             const plugin = interaction.fields.getTextInputValue('suggest_plugin');
             const description = interaction.fields.getTextInputValue('suggest_description');
@@ -173,20 +173,20 @@ module.exports = {
                 .setTitle('➤  NUEVA SUGERENCIA')
                 .setColor('#f1c40f')
                 .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
-                .setDescription(`🔌 Plugin:  \`${plugin}\`\n` +
-                    "\n" +
-                    ```yaml
-                    ${description}
-                    ```
+                .addFields(
+                    { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
+                    { name: '📝 Propuesta', value: `\`\`\`yaml\n${description || 'Sin descripción'}\n\`\`\`` }
                 )
+                .setFooter({ text: `ID: ${interaction.user.id}` })
+                .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('vote_up').setLabel('Si').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('vote_down').setLabel('No').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setCustomId('vote_up').setLabel('Me gusta').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('vote_down').setLabel('No me gusta').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
             );
 
             await suggestChannel.send({ embeds: [embed], components: [row] });
-            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada con éxito!', flags: 64 });
+            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada!', flags: 64 });
         }
 
 
