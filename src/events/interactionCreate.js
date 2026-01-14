@@ -11,12 +11,41 @@ module.exports = {
     name: Events.InteractionCreate,
     once: false,
     async execute(interaction) {
-        // --- MANEJO DE COMANDOS ---
-        if (interaction.isChatInputCommand()) {
-            const command = interaction.client.commands.get(interaction.commandName);
-            if (!command) return;
-            try { await command.execute(interaction); } catch (e) { console.error(e); }
-        }
+            // --- MANEJO DE COMANDOS ---
+            if (interaction.isChatInputCommand()) {
+                const command = interaction.client.commands.get(interaction.commandName);
+                if (!command) return;
+
+                try { 
+                    await command.execute(interaction); 
+                } catch (error) { 
+                    console.error(error);
+
+                    // Reporte al canal de logs
+                    const logChannel = interaction.client.channels.cache.get(process.env.LOG_CHANNEL_ID);
+                    if (logChannel) {
+                        const errorEmbed = new EmbedBuilder()
+                            .setTitle('❌ Error en Comando')
+                            .setColor('#ff4757')
+                            .addFields(
+                                { name: '💻 Comando', value: `\`/${interaction.commandName}\``, inline: true },
+                                { name: '👤 Usuario', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
+                                { name: '📂 Error', value: `\`\`\`js\n${error.message || error}\n\`\`\`` }
+                            )
+                            .setTimestamp();
+
+                        await logChannel.send({ embeds: [errorEmbed] });
+                    }
+
+                    // Respuesta al usuario
+                    const replyContent = '❌ Hubo un error al ejecutar este comando.';
+                    if (interaction.replied || interaction.deferred) {
+                        await interaction.followUp({ content: replyContent, flags: 64 });
+                    } else {
+                        await interaction.reply({ content: replyContent, flags: 64 });
+                    }
+                }
+            }
 
         // --- SISTEMA DE AUTOROLES ---
         if (interaction.isStringSelectMenu() && interaction.customId === 'autorole_menu') {
