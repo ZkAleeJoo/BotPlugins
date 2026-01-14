@@ -1,55 +1,34 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('sugerir')
-        .setDescription('Envía una sugerencia para mejorar un plugin.')
-        .addStringOption(option =>
-            option.setName('idea')
-                .setDescription('Describe tu idea detalladamente')
-                .setRequired(true)),
+        .setDescription('Abre un formulario profesional para enviar una sugerencia.'),
 
     async execute(interaction) {
-        const idea = interaction.options.getString('idea');
-        const channelId = process.env.SUGGESTIONS_CHANNEL_ID;
-        const suggestChannel = interaction.client.channels.cache.get(channelId);
+        const modal = new ModalBuilder()
+            .setCustomId('suggestion_modal')
+            .setTitle('💡 Nueva Sugerencia');
 
-        if (!suggestChannel) {
-            return interaction.reply({
-                content: '❌ **Error:** No se ha configurado el canal de sugerencias.',
-                flags: 64
-            });
-        }
+        const pluginInput = new TextInputBuilder()
+            .setCustomId('suggest_plugin')
+            .setLabel("¿Para qué plugin es la idea?")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Ej: MaxStaff, SimpleAds, ClearLag+...')
+            .setRequired(true);
 
-        const embed = new EmbedBuilder()
-            .setTitle('💡 Nueva Sugerencia')
-            .setDescription(idea)
-            .setColor('#f1c40f')
-            .setAuthor({ 
-                name: interaction.user.username, 
-                iconURL: interaction.user.displayAvatarURL() 
-            })
-            .setTimestamp()
-            .setFooter({ text: `ID del Usuario: ${interaction.user.id}` });
+        const descriptionInput = new TextInputBuilder()
+            .setCustomId('suggest_description')
+            .setLabel("Describe tu sugerencia")
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Explica detalladamente qué te gustaría añadir o cambiar...')
+            .setRequired(true);
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('vote_up')
-                .setLabel('A favor')
-                .setEmoji('👍')
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setCustomId('vote_down')
-                .setLabel('En contra')
-                .setEmoji('👎')
-                .setStyle(ButtonStyle.Danger)
+        modal.addComponents(
+            new ActionRowBuilder().addComponents(pluginInput),
+            new ActionRowBuilder().addComponents(descriptionInput)
         );
 
-        await suggestChannel.send({ embeds: [embed], components: [row] });
-
-        await interaction.reply({
-            content: '✅ ¡Tu sugerencia ha sido enviada al canal correspondiente!',
-            flags: 64
-        });
+        await interaction.showModal(modal);
     },
 };
