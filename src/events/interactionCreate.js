@@ -159,7 +159,16 @@ module.exports = {
         }
 
 
-
+        // --- SISTEMA DE VOTACIÓN DE SUGERENCIAS ---
+        if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
+            
+            const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
+            
+            await interaction.reply({ 
+                content: `✅ Has registrado tu voto **${voteType}**. ¡Gracias por participar!`, 
+                flags: 64 
+            });
+        }
 
 
 
