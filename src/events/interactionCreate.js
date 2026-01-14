@@ -42,5 +42,76 @@ module.exports = {
                 });
             }
         }
+
+        // --- SISTEMA DE SOPORTE: ABRIR MODAL  ---
+        if (interaction.isButton() && interaction.customId === 'open_support_modal') {
+            const modal = new ModalBuilder()
+                .setCustomId('support_form')
+                .setTitle('Formulario de Soporte Técnico');
+
+            const pluginInput = new TextInputBuilder()
+                .setCustomId('plugin_name')
+                .setLabel("¿Qué plugin presenta el problema?")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder('Ej: MaxStaff, ClearLag+...')
+                .setRequired(true);
+
+            const issueInput = new TextInputBuilder()
+                .setCustomId('issue_description')
+                .setLabel("Describe el error o duda")
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Explica detalladamente qué sucede...')
+                .setRequired(true);
+
+            modal.addComponents(
+                new ActionRowBuilder().addComponents(pluginInput),
+                new ActionRowBuilder().addComponents(issueInput)
+            );
+
+            await interaction.showModal(modal);
+        }
+
+        // --- SISTEMA DE SOPORTE ---
+        if (interaction.isModalSubmit() && interaction.customId === 'support_form') {
+            const plugin = interaction.fields.getTextInputValue('plugin_name');
+            const description = interaction.fields.getTextInputValue('issue_description');
+
+            const embed = new EmbedBuilder()
+                .setTitle(`Reporte de Soporte: ${plugin}`)
+                .setColor('#ff4757')
+                .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
+                .addFields(
+                    { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
+                    { name: '👤 Usuario', value: `${interaction.user}`, inline: true },
+                    { name: '📝 Descripción', value: description }
+                )
+                .setTimestamp()
+                .setFooter({ text: 'Zenith Support System' });
+
+            try {
+                const thread = await interaction.channel.threads.create({
+                    name: `Soporte: ${plugin} - ${interaction.user.username}`,
+                    autoArchiveDuration: 1440,
+                    reason: `Nuevo ticket de soporte de ${interaction.user.username}`,
+                });
+
+                await thread.send({ content: `Atención <@${interaction.guild.ownerId}>, hay un nuevo reporte.`, embeds: [embed] });
+                await thread.members.add(interaction.user.id);
+
+                await interaction.reply({ 
+                    content: `✅ Se ha creado tu hilo de soporte: ${thread}`, 
+                    flags: 64 
+                });
+            } catch (error) {
+                console.error('Error al crear el hilo:', error);
+                await interaction.reply({ content: 'Hubo un error al crear el hilo de soporte.', flags: 64 });
+            }
+        }
+
+
+
+
+
+
     },
 };
