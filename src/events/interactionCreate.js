@@ -5,7 +5,8 @@ const {
     TextInputStyle, 
     ActionRowBuilder, 
     EmbedBuilder,
-    ButtonBuilder
+    ButtonBuilder,
+    ButtonStyle 
 } = require('discord.js');
 
 module.exports = {
