@@ -189,21 +189,21 @@ module.exports = {
             await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada con éxito!', flags: 64 });
         }
 
-        // --- SISTEMA DE VOTACIÓN: SOLUCIÓN AL ERROR 10062 ---
-        if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
-            try {
-                await interaction.deferReply({ ephemeral: true });
 
-                const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
-                const emoji = interaction.customId === 'vote_up' ? '👍' : '👎';
+        if (interaction.isButton()) {
+            if (interaction.customId === 'vote_up' || interaction.customId === 'vote_down') {
+                try {
+                    await interaction.deferReply({ ephemeral: true });
 
-                // PROXIMA LÓGICA DE BASE DE DATOS PARA REGISTRAR VOTOS
-                
-                await interaction.editReply({ 
-                    content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
-                });
-            } catch (error) {
-                console.error('Error en votación:', error);
+                    const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
+                    const emoji = interaction.customId === 'vote_up' ? '<:yes:1448307047409127484>' : '<:no:1448307037753835723>';
+
+                    await interaction.editReply({ 
+                        content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
+                    });
+                } catch (error) {
+                    console.error('Error al procesar el voto:', error);
+                }
             }
         }
 
