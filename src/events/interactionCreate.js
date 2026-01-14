@@ -1,4 +1,11 @@
-const { Events } = require('discord.js');
+const { 
+    Events, 
+    ModalBuilder, 
+    TextInputBuilder, 
+    TextInputStyle, 
+    ActionRowBuilder, 
+    EmbedBuilder 
+} = require('discord.js');
 
 module.exports = {
     name: Events.InteractionCreate,
