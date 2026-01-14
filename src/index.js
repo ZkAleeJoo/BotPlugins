@@ -3,7 +3,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config();
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ 
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent 
+    ] 
+});
 
 client.commands = new Collection();
 
