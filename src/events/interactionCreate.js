@@ -39,8 +39,7 @@ module.exports = {
                         await logChannel.send({ embeds: [errorEmbed] });
                     }
 
-                    // Respuesta al usuario
-                    const replyContent = '❌ Hubo un error al ejecutar este comando.';
+                    const replyContent = '❌ Hubo un error al ejecutar este comando';
                     if (interaction.replied || interaction.deferred) {
                         await interaction.followUp({ content: replyContent, flags: 64 });
                     } else {
@@ -161,7 +160,7 @@ module.exports = {
         }
 
 
-        // --- SISTEMA DE SUGERENCIAS ---
+        // --- SISTEMA DE SUGERENCIAS: RECEPCIÓN DEL MODAL ---
         if (interaction.isModalSubmit() && interaction.customId === 'suggestion_modal') {
             const plugin = interaction.fields.getTextInputValue('suggest_plugin');
             const description = interaction.fields.getTextInputValue('suggest_description');
@@ -170,14 +169,14 @@ module.exports = {
             if (!suggestChannel) return interaction.reply({ content: '❌ Error: Canal no configurado.', flags: 64 });
 
             const embed = new EmbedBuilder()
-                .setTitle('➤  NUEVA SUGERENCIA')
+                .setTitle('➤   NUEVA SUGERENCIA')
                 .setColor('#f1c40f')
                 .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
                 .addFields(
                     { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
                     { name: '📝 Propuesta', value: `\`\`\`yaml\n${description || 'Sin descripción'}\n\`\`\`` }
                 )
-                .setFooter({ text: `ID: ${interaction.user.id}` })
+                .setFooter({ text: `ID: ${interaction.user.id} | <:yes:1448307047409127484> 0 | <:no:1448307037753835723> 0` })
                 .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
@@ -189,21 +188,43 @@ module.exports = {
             await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada!', flags: 64 });
         }
 
+        // --- SISTEMA DE VOTACIÓN ---
+        if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
+            try {
+                await interaction.deferReply({ ephemeral: true });
 
-        if (interaction.isButton()) {
-            if (interaction.customId === 'vote_up' || interaction.customId === 'vote_down') {
-                try {
-                    await interaction.deferReply({ ephemeral: true });
+                const message = interaction.message;
+                const oldEmbed = message.embeds[0];
+                if (!oldEmbed || !oldEmbed.footer) return;
 
-                    const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
-                    const emoji = interaction.customId === 'vote_up' ? '<:yes:1448307047409127484>' : '<:no:1448307037753835723>';
+                const footerText = oldEmbed.footer.text;
+                const parts = footerText.split(' | ');
+                
+                if (parts.length < 3) return;
 
-                    await interaction.editReply({ 
-                        content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
-                    });
-                } catch (error) {
-                    console.error('Error al procesar el voto:', error);
+                let upVotes = parseInt(parts[1].split(' ')[1]) || 0;
+                let downVotes = parseInt(parts[2].split(' ')[1]) || 0;
+
+                if (interaction.customId === 'vote_up') {
+                    upVotes++;
+                } else {
+                    downVotes++;
                 }
+
+                const newEmbed = EmbedBuilder.from(oldEmbed)
+                    .setFooter({ text: `${parts[0]} | <:yes:1448307047409127484> ${upVotes} | <:no:1448307037753835723> ${downVotes}` });
+
+                await message.edit({ embeds: [newEmbed] });
+
+                const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
+                const emoji = interaction.customId === 'vote_up' ? '<:yes:1448307047409127484>' : '<:no:1448307037753835723>';
+
+                await interaction.editReply({ 
+                    content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
+                });
+
+            } catch (error) {
+                console.error('Error al procesar el voto:', error);
             }
         }
 
