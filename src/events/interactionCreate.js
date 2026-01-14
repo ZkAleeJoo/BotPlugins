@@ -43,7 +43,7 @@ module.exports = {
             }
         }
 
-        // --- SISTEMA DE SOPORTE: ABRIR MODAL  ---
+        // --- SISTEMA DE SOPORTE: ABRIR MODAL ---
         if (interaction.isButton() && interaction.customId === 'open_support_modal') {
             const modal = new ModalBuilder()
                 .setCustomId('support_form')
@@ -63,18 +63,27 @@ module.exports = {
                 .setPlaceholder('Explica detalladamente qué sucede...')
                 .setRequired(true);
 
+            const logsInput = new TextInputBuilder()
+                .setCustomId('error_logs')
+                .setLabel("Logs de error o Enlaces (Pastebin/Imágenes)")
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Pega aquí el enlace a tus logs o capturas de pantalla relevantes...')
+                .setRequired(false); 
+
             modal.addComponents(
                 new ActionRowBuilder().addComponents(pluginInput),
-                new ActionRowBuilder().addComponents(issueInput)
+                new ActionRowBuilder().addComponents(issueInput),
+                new ActionRowBuilder().addComponents(logsInput)
             );
 
             await interaction.showModal(modal);
         }
 
-        // --- SISTEMA DE SOPORTE ---
+        // --- SISTEMA DE SOPORTE: CREAR HILO ---
         if (interaction.isModalSubmit() && interaction.customId === 'support_form') {
             const plugin = interaction.fields.getTextInputValue('plugin_name');
             const description = interaction.fields.getTextInputValue('issue_description');
+            const logs = interaction.fields.getTextInputValue('error_logs') || 'No proporcionado';
 
             const embed = new EmbedBuilder()
                 .setTitle(`Reporte de Soporte: ${plugin}`)
@@ -83,7 +92,8 @@ module.exports = {
                 .addFields(
                     { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
                     { name: '👤 Usuario', value: `${interaction.user}`, inline: true },
-                    { name: '📝 Descripción', value: description }
+                    { name: '📝 Descripción', value: description },
+                    { name: '📊 Logs / Enlaces adicionales', value: logs }
                 )
                 .setTimestamp()
                 .setFooter({ text: 'Zenith Support System' });
@@ -95,11 +105,15 @@ module.exports = {
                     reason: `Nuevo ticket de soporte de ${interaction.user.username}`,
                 });
 
-                await thread.send({ content: `Atención <@${interaction.guild.ownerId}>, hay un nuevo reporte.`, embeds: [embed] });
+                await thread.send({ 
+                    content: `Atención <@${interaction.guild.ownerId}>, hay un nuevo reporte de ${interaction.user}.`, 
+                    embeds: [embed] 
+                });
+                
                 await thread.members.add(interaction.user.id);
 
                 await interaction.reply({ 
-                    content: `✅ Se ha creado tu hilo de soporte: ${thread}`, 
+                    content: `✅ Se ha creado tu hilo de soporte: ${thread}\nPor favor, espera a que un administrador o la comunidad te responda allí.`, 
                     flags: 64 
                 });
             } catch (error) {
