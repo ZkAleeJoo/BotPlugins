@@ -170,23 +170,23 @@ module.exports = {
             if (!suggestChannel) return interaction.reply({ content: '❌ Error: Canal no configurado.', flags: 64 });
 
             const embed = new EmbedBuilder()
-                .setTitle('💡 Nueva Sugerencia de Plugin')
+                .setTitle('➤  NUEVA SUGERENCIA')
                 .setColor('#f1c40f')
                 .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
-                .addFields(
-                    { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
-                    { name: '📝 Propuesta', value: description }
+                .setDescription(`🔌 Plugin:  \`${plugin}\`\n` +
+                    "\n" +
+                    ```yaml
+                    ${description}
+                    ```
                 )
-                .setFooter({ text: `ID: ${interaction.user.id} | ¡Vota abajo!` })
-                .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('vote_up').setLabel('Me gusta').setEmoji('👍').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('vote_down').setLabel('No me gusta').setEmoji('👎').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setCustomId('vote_up').setLabel('Si').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('vote_down').setLabel('No').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
             );
 
             await suggestChannel.send({ embeds: [embed], components: [row] });
-            await interaction.reply({ content: '✅ ¡Tu sugerencia profesional ha sido enviada con éxito!', flags: 64 });
+            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada con éxito!', flags: 64 });
         }
 
         // --- SISTEMA DE VOTACIÓN: SOLUCIÓN AL ERROR 10062 ---
