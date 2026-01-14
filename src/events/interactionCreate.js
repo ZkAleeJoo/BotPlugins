@@ -159,15 +159,50 @@ module.exports = {
         }
 
 
-        // --- SISTEMA DE VOTACIÓN DE SUGERENCIAS ---
+        // --- SISTEMA DE SUGERENCIAS: ---
+        if (interaction.isModalSubmit() && interaction.customId === 'suggestion_modal') {
+            const plugin = interaction.fields.getTextInputValue('suggest_plugin');
+            const description = interaction.fields.getTextInputValue('suggest_description');
+            
+            const suggestChannel = interaction.client.channels.cache.get(process.env.SUGGESTIONS_CHANNEL_ID);
+            if (!suggestChannel) return interaction.reply({ content: '❌ Error: Canal no configurado.', flags: 64 });
+
+            const embed = new EmbedBuilder()
+                .setTitle('💡 Nueva Sugerencia de Plugin')
+                .setColor('#f1c40f')
+                .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
+                .addFields(
+                    { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
+                    { name: '📝 Propuesta', value: description }
+                )
+                .setFooter({ text: `ID: ${interaction.user.id} | ¡Vota abajo!` })
+                .setTimestamp();
+
+            const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('vote_up').setLabel('Me gusta').setEmoji('👍').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('vote_down').setLabel('No me gusta').setEmoji('👎').setStyle(ButtonStyle.Danger)
+            );
+
+            await suggestChannel.send({ embeds: [embed], components: [row] });
+            await interaction.reply({ content: '✅ ¡Tu sugerencia profesional ha sido enviada con éxito!', flags: 64 });
+        }
+
+        // --- SISTEMA DE VOTACIÓN: SOLUCIÓN AL ERROR 10062 ---
         if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
-            
-            const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
-            
-            await interaction.reply({ 
-                content: `✅ Has registrado tu voto **${voteType}**. ¡Gracias por participar!`, 
-                flags: 64 
-            });
+            try {
+                await interaction.deferReply({ ephemeral: true });
+
+                const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
+                const emoji = interaction.customId === 'vote_up' ? '👍' : '👎';
+
+                // PROXIMA LÓGICA DE BASE DE DATOS PARA REGISTRAR VOTOS
+                
+                await interaction.editReply({ 
+                    content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
+                });
+            } catch (error) {
+                console.error('Error en votación:', error);
+            }
         }
 
 
