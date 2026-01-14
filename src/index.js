@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config();
@@ -49,17 +49,27 @@ for (const file of eventFiles) {
 client.login(process.env.TOKEN);
 
 // --- SISTEMA ANTI-CRASH---
+const sendErrorLog = (title, error) => {
+    const logChannel = client.channels.cache.get(process.env.LOG_CHANNEL_ID);
+    if (!logChannel) return;
+
+    const embed = new EmbedBuilder()
+        .setTitle(`⚠️ ${title}`)
+        .setColor('#ffa502')
+        .setDescription(`\`\`\`js\n${error.stack || error}\n\`\`\``)
+        .setTimestamp();
+
+    logChannel.send({ embeds: [embed] }).catch(() => {});
+};
+
 process.on('unhandledRejection', (reason, p) => {
-    console.log(' [Anti-Crash] :: Unhandled Rejection/Catch');
+    console.log(' [Anti-Crash] :: Unhandled Rejection');
     console.log(reason, p);
+    sendErrorLog('Unhandled Rejection (Promesa no capturada)', reason);
 });
 
 process.on('uncaughtException', (err, origin) => {
-    console.log(' [Anti-Crash] :: Uncaught Exception/Catch');
+    console.log(' [Anti-Crash] :: Uncaught Exception');
     console.log(err, origin);
-});
-
-process.on('uncaughtExceptionMonitor', (err, origin) => {
-    console.log(' [Anti-Crash] :: Uncaught Exception/Catch (MONITOR)');
-    console.log(err, origin);
+    sendErrorLog('Uncaught Exception (Error crítico)', err);
 });
