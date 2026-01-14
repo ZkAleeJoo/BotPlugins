@@ -176,12 +176,12 @@ module.exports = {
                     { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
                     { name: '📝 Propuesta', value: `\`\`\`yaml\n${description || 'Sin descripción'}\n\`\`\`` }
                 )
-                .setFooter({ text: `ID: ${interaction.user.id} | <:yes:1448307047409127484> 0 | <:no:1448307037753835723> 0` })
+                .setFooter({ text: `ID: ${interaction.user.id} | Si 0 | No 0` })
                 .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('vote_up').setLabel('Me gusta').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('vote_down').setLabel('No me gusta').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setCustomId('vote_up').setLabel('Si').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('vote_down').setLabel('No').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
             );
 
             await suggestChannel.send({ embeds: [embed], components: [row] });
@@ -191,7 +191,7 @@ module.exports = {
         // --- SISTEMA DE VOTACIÓN ---
         if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
             try {
-                await interaction.deferReply({ ephemeral: true });
+                await interaction.deferReply({ flags: 64 });
 
                 const message = interaction.message;
                 const oldEmbed = message.embeds[0];
