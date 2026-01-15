@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('disc
 
 const MIS_PLUGINS = [
     { 
-        name: 'MaxStaff - GUI And more', 
+        name: 'MaxStaff', 
         value: 'maxstaff_gui_and_more', 
         url: 'https://www.spigotmc.org/resources/maxstaff-gui-and-more.130851/', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/130/130851.jpg?1766411128', 
