@@ -212,7 +212,7 @@ module.exports = {
                 }
 
                 const newEmbed = EmbedBuilder.from(oldEmbed)
-                    .setFooter({ text: `${parts[0]} | <:yes:1448307047409127484> ${upVotes} | <:no:1448307037753835723> ${downVotes}` });
+                    .setFooter({ text: `${parts[0]} | Si ${upVotes} | No ${downVotes}` });
 
                 await message.edit({ embeds: [newEmbed] });
 
