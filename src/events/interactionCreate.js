@@ -188,30 +188,52 @@ module.exports = {
             await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada para revisión!', flags: 64 });
         }
 
-        // --- SISTEMA DE GESTIÓN DE SUGERENCIAS ---
+        // --- SISTEMA DE GESTIÓN DE SUGERENCIAS (ADMIN ONLY) ---
         if (interaction.isButton() && (interaction.customId === 'approve_suggestion' || interaction.customId === 'reject_suggestion')) {
             if (interaction.user.id !== '737357479364526143') {
                 return interaction.reply({ 
-                    content: '❌ No tienes permisos para gestionar sugerencias', 
+                    content: '❌ No tienes permisos para gestionar sugerencias.', 
                     flags: 64 
                 });
             }
+
+            const isApprove = interaction.customId === 'approve_suggestion';
+            
+            const modal = new ModalBuilder()
+                .setCustomId(isApprove ? 'modal_approve_reason' : 'modal_reject_reason')
+                .setTitle(isApprove ? 'Aprobar Sugerencia' : 'Rechazar Sugerencia');
+
+            const reasonInput = new TextInputBuilder()
+                .setCustomId('reason_text')
+                .setLabel(isApprove ? "Motivo de la aprobación" : "Motivo del rechazo")
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Escribe aquí por qué has tomado esta decisión...')
+                .setRequired(true);
+
+            modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+
+            await interaction.showModal(modal);
+        }
+
+        // --- PROCESAR EL MOTIVO DE LA SUGERENCIA ---
+        if (interaction.isModalSubmit() && (interaction.customId === 'modal_approve_reason' || interaction.customId === 'modal_reject_reason')) {
+            const reason = interaction.fields.getTextInputValue('reason_text');
+            const isApprove = interaction.customId === 'modal_approve_reason';
 
             const message = interaction.message;
             const oldEmbed = message.embeds[0];
             if (!oldEmbed) return;
 
-            const isApprove = interaction.customId === 'approve_suggestion';
-            
             const updatedEmbed = EmbedBuilder.from(oldEmbed)
                 .setTitle(isApprove ? '✅ SUGERENCIA APROBADA' : '❌ SUGERENCIA RECHAZADA')
                 .setColor(isApprove ? '#2ecc71' : '#e74c3c')
+                .addFields({ name: '💬 Motivo de la Administración', value: `\`\`\`\n${reason}\n\`\`\`` })
                 .setTimestamp();
 
             await message.edit({ embeds: [updatedEmbed], components: [] });
 
             await interaction.reply({ 
-                content: `Sugerencia ${isApprove ? 'aprobada' : 'rechazada'} correctamente.`, 
+                content: `✅ Sugerencia procesada con éxito como **${isApprove ? 'Aprobada' : 'Rechazada'}**.`, 
                 flags: 64 
             });
         }
