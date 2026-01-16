@@ -176,56 +176,44 @@ module.exports = {
                     { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
                     { name: '📝 Propuesta', value: `\`\`\`yaml\n${description || 'Sin descripción'}\n\`\`\`` }
                 )
-                .setFooter({ text: `ID: ${interaction.user.id} | Si 0 | No 0` })
+                .setFooter({ text: `ID Usuario: ${interaction.user.id}` })
                 .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('vote_up').setLabel('Si').setEmoji('<:yes:1448307047409127484>').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('vote_down').setLabel('No').setEmoji('<:no:1448307037753835723>').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setCustomId('approve_suggestion').setLabel('Aprobar').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('reject_suggestion').setLabel('Rechazar').setStyle(ButtonStyle.Danger)
             );
 
             await suggestChannel.send({ embeds: [embed], components: [row] });
-            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada!', flags: 64 });
+            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada para revisión!', flags: 64 });
         }
 
-        // --- SISTEMA DE VOTACIÓN ---
-        if (interaction.isButton() && (interaction.customId === 'vote_up' || interaction.customId === 'vote_down')) {
-            try {
-                await interaction.deferReply({ flags: 64 });
-
-                const message = interaction.message;
-                const oldEmbed = message.embeds[0];
-                if (!oldEmbed || !oldEmbed.footer) return;
-
-                const footerText = oldEmbed.footer.text;
-                const parts = footerText.split(' | ');
-                
-                if (parts.length < 3) return;
-
-                let upVotes = parseInt(parts[1].split(' ')[1]) || 0;
-                let downVotes = parseInt(parts[2].split(' ')[1]) || 0;
-
-                if (interaction.customId === 'vote_up') {
-                    upVotes++;
-                } else {
-                    downVotes++;
-                }
-
-                const newEmbed = EmbedBuilder.from(oldEmbed)
-                    .setFooter({ text: `${parts[0]} | Si ${upVotes} | No ${downVotes}` });
-
-                await message.edit({ embeds: [newEmbed] });
-
-                const voteType = interaction.customId === 'vote_up' ? 'positivo' : 'negativo';
-                const emoji = interaction.customId === 'vote_up' ? '<:yes:1448307047409127484>' : '<:no:1448307037753835723>';
-
-                await interaction.editReply({ 
-                    content: `${emoji} Has registrado tu voto **${voteType}**. ¡Gracias por tu feedback!` 
+        // --- SISTEMA DE GESTIÓN DE SUGERENCIAS ---
+        if (interaction.isButton() && (interaction.customId === 'approve_suggestion' || interaction.customId === 'reject_suggestion')) {
+            if (interaction.user.id !== '737357479364526143') {
+                return interaction.reply({ 
+                    content: '❌ No tienes permisos para gestionar sugerencias', 
+                    flags: 64 
                 });
-
-            } catch (error) {
-                console.error('Error al procesar el voto:', error);
             }
+
+            const message = interaction.message;
+            const oldEmbed = message.embeds[0];
+            if (!oldEmbed) return;
+
+            const isApprove = interaction.customId === 'approve_suggestion';
+            
+            const updatedEmbed = EmbedBuilder.from(oldEmbed)
+                .setTitle(isApprove ? '✅ SUGERENCIA APROBADA' : '❌ SUGERENCIA RECHAZADA')
+                .setColor(isApprove ? '#2ecc71' : '#e74c3c')
+                .setTimestamp();
+
+            await message.edit({ embeds: [updatedEmbed], components: [] });
+
+            await interaction.reply({ 
+                content: `Sugerencia ${isApprove ? 'aprobada' : 'rechazada'} correctamente.`, 
+                flags: 64 
+            });
         }
 
 
