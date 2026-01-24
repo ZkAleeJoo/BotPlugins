@@ -1,33 +1,40 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { 
+    SlashCommandBuilder, 
+    EmbedBuilder, 
+    PermissionFlagsBits, 
+    ActionRowBuilder, 
+    ButtonBuilder, 
+    ButtonStyle 
+} = require('discord.js'); //
 
 const MIS_PLUGINS = [
     { 
         name: 'MaxStaff', 
-        value: 'maxstaff_gui_and_more', 
-        url: 'https://www.spigotmc.org/resources/maxstaff-gui-and-more.130851/', 
+        value: 'maxstaff', 
+        url: 'https://modrinth.com/plugin/maxstaff', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/130/130851.jpg?1766411128', 
         color: '#ae00fe' 
     },
     { 
         name: 'ClearLag+', 
         value: 'clearlag', 
-        url: 'https://www.spigotmc.org/resources/clearlag.122239/', 
+        url: 'https://modrinth.com/plugin/clearlag+', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/122/122239.jpg?1765979700',
         color: '#f8f400' 
     },
     { 
         name: 'SimpleAds', 
         value: 'simpleads', 
-        url: 'https://www.spigotmc.org/resources/simpleads.131350/', 
+        url: 'https://modrinth.com/plugin/simpleads', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/131/131350.jpg?1767318794',
         color: '#000cf8' 
     }
-];
+]; //
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('update')
-        .setDescription('Anuncia la actualización de un plugin con versión y cambios.')
+        .setDescription('Anuncia la actualización de un plugin en Modrinth.')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addStringOption(option =>
             option.setName('plugin')
@@ -48,47 +55,57 @@ module.exports = {
     async execute(interaction) {
         const pluginValue = interaction.options.getString('plugin');
         const version = interaction.options.getString('version');
-        
         const rawChanges = interaction.options.getString('descripcion');
         const changes = rawChanges.replace(/\\n/g, '\n');
 
         const pluginData = MIS_PLUGINS.find(p => p.value === pluginValue);
-        
         const channelId = process.env.UPDATE_CHANNEL_ID;
         const announcementChannel = interaction.client.channels.cache.get(channelId);
 
         if (!announcementChannel) {
             return interaction.reply({ 
-                content: `❌ **Error:** No encontré el canal con ID \`${channelId}\`.`, 
+                content: `❌ **Error:** No encontré el canal de actualizaciones.`, 
                 flags: 64
             });
         }
 
         const announcementEmbed = new EmbedBuilder()
-            .setTitle(`Update: ${pluginData.name}!`)
+            .setTitle(`⭐ ${pluginData.name}!`)
             .setColor(pluginData.color)
             .setThumbnail(pluginData.thumbnail || interaction.client.user.displayAvatarURL())
             .addFields(
-                { name: '📦 Versión', value: `\`${version}\``, inline: true },
-                { name: '🔗 Enlace', value: `[SpigotMC](${pluginData.url})`, inline: true },
+                { name: '📦 Versión Actual', value: `\`${version}\``, inline: true },
                 { name: '📝 Novedades y Cambios', value: changes } 
             )
             .setTimestamp()
             .setFooter({ 
-                text: `Anuncio enviado desde Spigot`, 
-                iconURL: "https://static.spigotmc.org/img/spigot.png"
+                text: `Publicado en Modrinth`, 
+                iconURL: "https://cdn.modrinth.com/assets/images/modrinth_logo.svg" 
             });
 
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('Link de Descarga')
+                .setURL(pluginData.url)
+                .setStyle(ButtonStyle.Link)
+                .setEmoji('🌐')
+        );
+
         try {
-            await announcementChannel.send({ content: '> \`|\` <@&1460373287338246392>', embeds: [announcementEmbed] });
+            await announcementChannel.send({ 
+                content: '> `|` <@&1460373287338246392>', 
+                embeds: [announcementEmbed], 
+                components: [row] 
+            });
+
             await interaction.reply({ 
-                content: `✅ Anuncio de **${pluginData.name}** enviado correctamente a <#${channelId}>.`, 
+                content: `✅ Anuncio de **${pluginData.name}** enviado a <#${channelId}>.`, 
                 flags: 64
             });
         } catch (error) {
             console.error(error);
             await interaction.reply({ 
-                content: '❌ Error al enviar el anuncio. Revisa los permisos del bot.', 
+                content: '❌ Error al enviar el anuncio. Revisa los permisos.', 
                 flags: 64
             });
         }
