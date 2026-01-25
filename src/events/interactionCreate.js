@@ -158,6 +158,94 @@ module.exports = {
         }
 
 
+        // --- SISTEMA DE TICKETS: APERTURA ---
+        if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
+            await interaction.deferReply({ flags: 64 }); 
+
+            const categoryId = process.env.TICKET_CATEGORY_ID;
+            const supportRoleId = process.env.SUPPORT_ROLE_ID;
+            const category = interaction.guild.channels.cache.get(categoryId);
+
+            if (!category) {
+                return interaction.editReply({ content: '❌ Error: La categoría de tickets no está configurada correctamente.' });
+            }
+
+            const ticketCount = category.children.cache.size + 1;
+            const categoryName = interaction.values[0];
+            const channelName = `${ticketCount}-${categoryName}-${interaction.user.username}`;
+
+            try {
+                const ticketChannel = await interaction.guild.channels.create({
+                    name: channelName,
+                    type: 0, 
+                    parent: categoryId,
+                    permissionOverwrites: [
+                        { id: interaction.guild.id, deny: ['ViewChannel'] }, 
+                        { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+                        { id: supportRoleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+                    ],
+                });
+
+                const welcomeEmbed = new EmbedBuilder()
+                    .setTitle('〉TICKET OPENED')
+                    .setColor('#5865F2')
+                    .setDescription(
+                        `Hello ${interaction.user}, thanks for contacting us.\n` +
+                        'An agent from our **Support Team** will be with you shortly. ' +
+                        'Please explain your case in detail to speed up the process.'
+                    )
+                    .addFields(
+                        { name: '👤 User', value: `${interaction.user.tag}`, inline: true },
+                        { name: '📂 Category', value: `\`${categoryName.toUpperCase()}\``, inline: true }
+                    )
+                    .setTimestamp()
+                    .setFooter({ text: 'Gengar Ticket System', iconURL: interaction.client.user.displayAvatarURL() });
+
+                const row = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('claim_ticket')
+                        .setLabel('Claim Ticket')
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId('close_ticket')
+                        .setLabel('Close Ticket')
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+                await ticketChannel.send({ 
+                    content: `> Attention: ${interaction.user} | <@&${supportRoleId}>`, 
+                    embeds: [welcomeEmbed], 
+                    components: [row] 
+                });
+
+                await interaction.editReply({ content: `✅ Ticket created successfully: ${ticketChannel}` });
+
+            } catch (error) {
+                console.error('Error al crear ticket:', error);
+                await interaction.editReply({ content: '❌ Hubo un error al crear tu canal de soporte.' });
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     },
 };
