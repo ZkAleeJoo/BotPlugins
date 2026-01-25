@@ -13,23 +13,16 @@ const MIS_PLUGINS = [
         value: 'maxstaff', 
         url: 'https://modrinth.com/plugin/maxstaff', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/130/130851.jpg?1766411128', 
-        color: '#ae00fe' 
+        color: '#44ff00' 
     },
     { 
         name: 'ClearLag+', 
         value: 'clearlag', 
         url: 'https://modrinth.com/plugin/clearlag+', 
         thumbnail: 'https://www.spigotmc.org/data/resource_icons/122/122239.jpg?1765979700',
-        color: '#f8f400' 
+        color: '#44ff00' 
     },
-    { 
-        name: 'SimpleAds', 
-        value: 'simpleads', 
-        url: 'https://modrinth.com/plugin/simpleads', 
-        thumbnail: 'https://www.spigotmc.org/data/resource_icons/131/131350.jpg?1767318794',
-        color: '#000cf8' 
-    }
-]; //
+]; 
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -70,25 +63,24 @@ module.exports = {
         }
 
         const announcementEmbed = new EmbedBuilder()
-            .setTitle(`⭐ ${pluginData.name}!`)
+            .setTitle(`Update ${pluginData.name}`)
             .setColor(pluginData.color)
             .setThumbnail(pluginData.thumbnail || interaction.client.user.displayAvatarURL())
             .addFields(
-                { name: '📦 Versión Actual', value: `\`${version}\``, inline: true },
-                { name: '📝 Novedades y Cambios', value: changes } 
+                { name: '📦 New version', value: `\`${version}\``, inline: true },
+                { name: '📝 New Features and Changes', value: changes } 
             )
             .setTimestamp()
             .setFooter({ 
-                text: `Publicado en Modrinth`, 
-                iconURL: "https://cdn.modrinth.com/assets/images/modrinth_logo.svg" 
+                text: `Published on Modrinth`, 
+                iconURL: "https://dl.flathub.org/media/com/modrinth/ModrinthApp/bff25765a432419ad3bc1a76ebd34f77/icons/128x128@2/com.modrinth.ModrinthApp.png" 
             });
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setLabel('Link de Descarga')
+                .setLabel('Download Link')
                 .setURL(pluginData.url)
                 .setStyle(ButtonStyle.Link)
-                .setEmoji('🌐')
         );
 
         try {

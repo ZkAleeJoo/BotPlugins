@@ -22,8 +22,8 @@ module.exports = {
         console.log(chalk.cyan.bold('═'.repeat(40) + '\n'));
 
         const activities = [
-            { name: `Actualizando Plugins...`, type: ActivityType.Watching },
-            { name: `${commandsCount} comandos disponibles`, type: ActivityType.Listening },
+            { name: `Updating Plugins...`, type: ActivityType.Watching },
+            { name: `${commandsCount} commands available`, type: ActivityType.Listening },
             { name: 'SpigotMC & Modrinth', type: ActivityType.Playing },
         ];
 

@@ -3,25 +3,25 @@ const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, Act
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('sugerir')
-        .setDescription('Abre un formulario profesional para enviar una sugerencia.'),
+        .setDescription('Open a professional form to send a suggestion.'),
 
     async execute(interaction) {
         const modal = new ModalBuilder()
             .setCustomId('suggestion_modal')
-            .setTitle('💡 Nueva Sugerencia');
+            .setTitle('💡 New Suggestion');
 
         const pluginInput = new TextInputBuilder()
             .setCustomId('suggest_plugin')
-            .setLabel("¿Para qué plugin es la idea?")
+            .setLabel("What plugin is the idea for?")
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('Ej: MaxStaff, SimpleAds, ClearLag+...')
+            .setPlaceholder('Examples: MaxStaff, ClearLag+...')
             .setRequired(true);
 
         const descriptionInput = new TextInputBuilder()
             .setCustomId('suggest_description')
-            .setLabel("Describe tu sugerencia")
+            .setLabel("Describe your suggestion")
             .setStyle(TextInputStyle.Paragraph)
-            .setPlaceholder('Explica detalladamente qué te gustaría añadir o cambiar...')
+            .setPlaceholder('Explain in detail what you would like to add or change...')
             .setRequired(true);
 
         modal.addComponents(

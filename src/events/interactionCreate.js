@@ -23,7 +23,6 @@ module.exports = {
                 } catch (error) { 
                     console.error(error);
 
-                    // Reporte al canal de logs
                     const logChannel = interaction.client.channels.cache.get(process.env.LOG_CHANNEL_ID);
                     if (logChannel) {
                         const errorEmbed = new EmbedBuilder()
@@ -68,97 +67,17 @@ module.exports = {
                 await member.roles.set(finalRoles);
 
                 await interaction.reply({ 
-                    content: 'Tus preferencias han sido actualizadas con éxito.', 
+                    content: 'Your preferences have been successfully updated.', 
                     flags: 64
                 });
             } catch (error) {
                 console.error('Error en Autoroles:', error);
                 await interaction.reply({ 
-                    content: 'Error de permisos al actualizar tus roles.', 
+                    content: 'Permission error when updating your roles. Please contact an administrator.', 
                     flags: 64
                 });
             }
         }
-
-        // --- SISTEMA DE SOPORTE: ABRIR MODAL ---
-        if (interaction.isButton() && interaction.customId === 'open_support_modal') {
-            const modal = new ModalBuilder()
-                .setCustomId('support_form')
-                .setTitle('Formulario de Soporte Técnico');
-
-            const pluginInput = new TextInputBuilder()
-                .setCustomId('plugin_name')
-                .setLabel("¿Qué plugin presenta el problema?")
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('Ej: MaxStaff, ClearLag+...')
-                .setRequired(true);
-
-            const issueInput = new TextInputBuilder()
-                .setCustomId('issue_description')
-                .setLabel("Describe el error o duda")
-                .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('Explica detalladamente qué sucede...')
-                .setRequired(true);
-
-            const logsInput = new TextInputBuilder()
-                .setCustomId('error_logs')
-                .setLabel("Logs de error o Enlaces (Pastebin/Imágenes)")
-                .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('Pega aquí el enlace a tus logs o capturas de pantalla relevantes...')
-                .setRequired(false); 
-
-            modal.addComponents(
-                new ActionRowBuilder().addComponents(pluginInput),
-                new ActionRowBuilder().addComponents(issueInput),
-                new ActionRowBuilder().addComponents(logsInput)
-            );
-
-            await interaction.showModal(modal);
-        }
-
-        // --- SISTEMA DE SOPORTE: CREAR HILO ---
-        if (interaction.isModalSubmit() && interaction.customId === 'support_form') {
-            const plugin = interaction.fields.getTextInputValue('plugin_name');
-            const description = interaction.fields.getTextInputValue('issue_description');
-            const logs = interaction.fields.getTextInputValue('error_logs') || 'No proporcionado';
-
-            const embed = new EmbedBuilder()
-                .setTitle(`Reporte de Soporte: ${plugin}`)
-                .setColor('#ff4757')
-                .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
-                .addFields(
-                    { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
-                    { name: '👤 Usuario', value: `${interaction.user}`, inline: true },
-                    { name: '📝 Descripción', value: description },
-                    { name: '📊 Logs / Enlaces adicionales', value: logs }
-                )
-                .setTimestamp()
-                .setFooter({ text: 'Zenith Support System' });
-
-            try {
-                const thread = await interaction.channel.threads.create({
-                    name: `Soporte: ${plugin} - ${interaction.user.username}`,
-                    autoArchiveDuration: 1440,
-                    reason: `Nuevo ticket de soporte de ${interaction.user.username}`,
-                });
-
-                await thread.send({ 
-                    content: `Atención <@${interaction.guild.ownerId}>, hay un nuevo reporte de ${interaction.user}.`, 
-                    embeds: [embed] 
-                });
-                
-                await thread.members.add(interaction.user.id);
-
-                await interaction.reply({ 
-                    content: `✅ Se ha creado tu hilo de soporte: ${thread}\nPor favor, espera a que un administrador o la comunidad te responda allí.`, 
-                    flags: 64 
-                });
-            } catch (error) {
-                console.error('Error al crear el hilo:', error);
-                await interaction.reply({ content: 'Hubo un error al crear el hilo de soporte.', flags: 64 });
-            }
-        }
-
 
         // --- SISTEMA DE SUGERENCIAS: RECEPCIÓN DEL MODAL ---
         if (interaction.isModalSubmit() && interaction.customId === 'suggestion_modal') {
@@ -166,15 +85,15 @@ module.exports = {
             const description = interaction.fields.getTextInputValue('suggest_description');
             
             const suggestChannel = interaction.client.channels.cache.get(process.env.SUGGESTIONS_CHANNEL_ID);
-            if (!suggestChannel) return interaction.reply({ content: '❌ Error: Canal no configurado.', flags: 64 });
+            if (!suggestChannel) return interaction.reply({ content: '❌ Error: Channel not configured.', flags: 64 });
 
             const embed = new EmbedBuilder()
-                .setTitle('➤   NUEVA SUGERENCIA')
+                .setTitle('➤   NEW SUGGESTION')
                 .setColor('#f1c40f')
                 .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
                 .addFields(
                     { name: '🔌 Plugin', value: `\`${plugin}\``, inline: true },
-                    { name: '📝 Propuesta', value: `\`\`\`yaml\n${description || 'Sin descripción'}\n\`\`\`` }
+                    { name: '📝 Proposal', value: `\`\`\`yaml\n${description || 'No description'}\n\`\`\`` }
                 )
                 .setFooter({ text: `ID Usuario: ${interaction.user.id}` })
                 .setTimestamp();
@@ -185,14 +104,14 @@ module.exports = {
             );
 
             await suggestChannel.send({ embeds: [embed], components: [row] });
-            await interaction.reply({ content: '✅ ¡Tu sugerencia ha sido enviada para revisión!', flags: 64 });
+            await interaction.reply({ content: '✅ Your suggestion has been sent for review!', flags: 64 });
         }
 
         // --- SISTEMA DE GESTIÓN DE SUGERENCIAS (ADMIN ONLY) ---
         if (interaction.isButton() && (interaction.customId === 'approve_suggestion' || interaction.customId === 'reject_suggestion')) {
             if (interaction.user.id !== '737357479364526143') {
                 return interaction.reply({ 
-                    content: '❌ No tienes permisos para gestionar sugerencias.', 
+                    content: '❌ You do not have permission to manage suggestions.', 
                     flags: 64 
                 });
             }
@@ -205,9 +124,9 @@ module.exports = {
 
             const reasonInput = new TextInputBuilder()
                 .setCustomId('reason_text')
-                .setLabel(isApprove ? "Motivo de la aprobación" : "Motivo del rechazo")
+                .setLabel(isApprove ? "Reason for approval" : "Reason for rejection")
                 .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('Escribe aquí por qué has tomado esta decisión...')
+                .setPlaceholder('Write here why you made this decision...')
                 .setRequired(true);
 
             modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
@@ -225,15 +144,15 @@ module.exports = {
             if (!oldEmbed) return;
 
             const updatedEmbed = EmbedBuilder.from(oldEmbed)
-                .setTitle(isApprove ? '✅ SUGERENCIA APROBADA' : '❌ SUGERENCIA RECHAZADA')
+                .setTitle(isApprove ? '✅ SUGGESTION APPROVED' : '❌ SUGGESTION REJECTED')
                 .setColor(isApprove ? '#2ecc71' : '#e74c3c')
-                .addFields({ name: '💬 Motivo de la Administración', value: `\`\`\`\n${reason}\n\`\`\`` })
+                .addFields({ name: '💬 Reason from Administration', value: `\`\`\`\n${reason}\n\`\`\`` })
                 .setTimestamp();
 
             await message.edit({ embeds: [updatedEmbed], components: [] });
 
             await interaction.reply({ 
-                content: `✅ Sugerencia procesada con éxito como **${isApprove ? 'Aprobada' : 'Rechazada'}**.`, 
+                content: `✅ Suggestion processed successfully as **${isApprove ? 'Approved' : 'Rejected'}**.`, 
                 flags: 64 
             });
         }
