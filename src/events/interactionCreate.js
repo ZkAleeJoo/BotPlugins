@@ -8,7 +8,7 @@ const {
     ButtonBuilder,
     ButtonStyle 
 } = require('discord.js');
-const { createTranscript } = require('discord-html-transcripts');
+const discordTranscripts = require('discord-html-transcripts');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -258,6 +258,17 @@ module.exports = {
 
         // --- SISTEMA DE TICKETS: CIERRE Y TRANSCRIPCIÓN ---
         if (interaction.isButton() && interaction.customId === 'close_ticket') {
+
+            const supportRoleId = process.env.SUPPORT_ROLE_ID;
+
+            if (!interaction.member.roles.cache.has(supportRoleId)) {
+                return interaction.reply({ 
+                    content: '❌ Only members of the support team can claim tickets.', 
+                    flags: 64 
+                });
+            }
+
+            
             await interaction.reply({ content: '🔒 Closing ticket and generating transcript...', flags: 64 });
 
             const channel = interaction.channel;
