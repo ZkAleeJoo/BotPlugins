@@ -256,6 +256,95 @@ module.exports = {
 
 
 
+        // --- SISTEMA DE TICKETS: CIERRE Y TRANSCRIPCIÓN ---
+        if (interaction.isButton() && interaction.customId === 'close_ticket') {
+            await interaction.reply({ content: '🔒 Closing ticket and generating transcript...', flags: 64 });
+
+            const channel = interaction.channel;
+            const logChannel = interaction.client.channels.cache.get(process.env.TICKET_LOG_CHANNEL_ID);
+            
+            const ticketOwner = channel.permissionOverwrites.cache.find(po => po.type === 1 && po.id !== process.env.SUPPORT_ROLE_ID)?.id;
+            const user = await interaction.client.users.fetch(ticketOwner).catch(() => null);
+
+            const transcript = await discordTranscripts.createTranscript(channel, {
+                limit: -1,
+                fileName: `transcript-${channel.name}.html`,
+                returnType: 'attachment',
+                saveImages: true,
+                poweredBy: false
+            });
+
+            if (logChannel) {
+                const logEmbed = new EmbedBuilder()
+                    .setTitle('📄 Ticket Transcript Saved')
+                    .setColor('#2f3136')
+                    .addFields(
+                        { name: 'Channel', value: `\`${channel.name}\``, inline: true },
+                        { name: 'Opened by', value: user ? `${user.tag}` : 'Unknown', inline: true }
+                    )
+                    .setTimestamp();
+
+                await logChannel.send({ embeds: [logEmbed], files: [transcript] });
+            }
+
+            if (user) {
+                const ratingEmbed = new EmbedBuilder()
+                    .setTitle('⭐ Rate our Support')
+                    .setDescription('We hope we helped you! Please rate the attention received from our team.')
+                    .setColor('#f1c40f')
+                    .setFooter({ text: 'Your feedback helps us improve.' });
+
+                const ratingRow = new ActionRowBuilder().addComponents(
+                    [1, 2, 3, 4, 5].map(star => 
+                        new ButtonBuilder()
+                            .setCustomId(`rate_${star}_${channel.name}`) 
+                            .setLabel(`${star} ⭐`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+                );
+
+                try {
+                    await user.send({ 
+                        content: '📎 Here is a copy of your ticket transcript:',
+                        embeds: [ratingEmbed], 
+                        components: [ratingRow],
+                        files: [transcript] 
+                    });
+                } catch (e) {
+                    console.log(`No se pudo enviar el DM a ${user.tag}`);
+                }
+            }
+
+            setTimeout(() => channel.delete().catch(() => {}), 5000);
+        }
+
+        // --- SISTEMA DE VALORACIONES (ESTRELLAS) ---
+        if (interaction.isButton() && interaction.customId.startsWith('rate_')) {
+            const [ , stars, ticketName] = interaction.customId.split('_');
+            const ratingsChannel = interaction.client.channels.cache.get(process.env.RATINGS_CHANNEL_ID);
+
+            if (ratingsChannel) {
+                const feedbackEmbed = new EmbedBuilder()
+                    .setTitle('🌟 New Feedback Received')
+                    .setColor('#a55eea')
+                    .addFields(
+                        { name: 'User', value: `${interaction.user.tag}`, inline: true },
+                        { name: 'Ticket', value: `\`${ticketName}\``, inline: true },
+                        { name: 'Rating', value: '⭐'.repeat(parseInt(stars)), inline: false }
+                    )
+                    .setTimestamp();
+
+                await ratingsChannel.send({ embeds: [feedbackEmbed] });
+            }
+
+            await interaction.update({ 
+                content: '✅ Thank you for your feedback!', 
+                embeds: [], 
+                components: [] 
+            });
+        }
+
+
 
 
 
