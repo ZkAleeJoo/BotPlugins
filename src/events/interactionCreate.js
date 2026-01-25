@@ -8,6 +8,7 @@ const {
     ButtonBuilder,
     ButtonStyle 
 } = require('discord.js');
+const { createTranscript } = require('discord-html-transcripts');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -227,7 +228,31 @@ module.exports = {
         }
 
 
+        // --- SISTEMA DE TICKETS: RECLAMAR (CLAIM) ---
+        if (interaction.isButton() && interaction.customId === 'claim_ticket') {
+            const supportRoleId = process.env.SUPPORT_ROLE_ID;
 
+            if (!interaction.member.roles.cache.has(supportRoleId)) {
+                return interaction.reply({ 
+                    content: '❌ Only members of the support team can claim tickets.', 
+                    flags: 64 
+                });
+            }
+
+            const oldEmbed = interaction.message.embeds[0];
+            const claimedEmbed = EmbedBuilder.from(oldEmbed)
+                .setColor('#2ecc71') 
+                .addFields({ name: '🙋‍♂️ Claimed by', value: `${interaction.user}`, inline: true });
+
+            const row = ActionRowBuilder.from(interaction.message.components[0]);
+            row.components[0].setDisabled(true); 
+            
+            await interaction.update({ embeds: [claimedEmbed], components: [row] });
+            await interaction.followUp({ 
+                content: `✅ This ticket is now being attended by ${interaction.user}.`, 
+                flags: 64 
+            });
+        }
 
 
 
