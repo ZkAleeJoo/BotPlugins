@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// IMPORTANTE: Ahora el paquete se llama @google/genai
+const { GoogleGenAI } = require('@google/genai');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,22 +18,28 @@ module.exports = {
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
-            return interaction.editReply('❌ Error: Configura GEMINI_API_KEY en tu .env');
+            return interaction.editReply('❌ Error: La API Key no está configurada.');
         }
 
         try {
-            const genAI = new GoogleGenerativeAI(apiKey);
-            
-            // Probamos con gemini-1.5-flash que es el más estable actualmente
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            // Inicializamos con el nuevo SDK
+            const client = new GoogleGenAI({
+                apiKey: apiKey,
+                apiVersion: 'v1' // Forzamos la versión estable v1 para evitar errores 404
+            });
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            // Generamos contenido usando la estructura del nuevo SDK
+            // Nota: El modelo gemini-1.5-flash ya es estable en v1
+            const response = await client.models.generateContent({
+                model: 'gemini-1.5-flash', 
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+            });
 
-            if (!text) throw new Error("La IA devolvió una respuesta vacía.");
+            const text = response.candidates[0].content.parts[0].text;
 
-            // Dividir mensajes largos para evitar el límite de 2000 caracteres de Discord
+            if (!text) throw new Error("Respuesta vacía de la IA.");
+
+            // Sistema de troceado de mensajes para Discord (límite 2000 caracteres)
             if (text.length > 2000) {
                 const chunks = text.match(/[\s\S]{1,1900}/g) || [];
                 for (let i = 0; i < chunks.length; i++) {
@@ -44,14 +51,8 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Error detallado:', error);
-            
-            // Si sigue dando 404, informamos al usuario para revisar la versión del SDK
-            if (error.status === 404) {
-                await interaction.editReply('❌ Error 404: El modelo no fue encontrado. Por favor, ejecuta `npm install @google/generative-ai@latest` y reinicia el bot.');
-            } else {
-                await interaction.editReply('❌ Hubo un fallo al procesar la IA. Revisa la consola del bot.');
-            }
+            console.error('Error con el nuevo SDK:', error);
+            await interaction.editReply('❌ Error al conectar con la IA. Asegúrate de haber instalado `@google/genai`.');
         }
     },
 };
