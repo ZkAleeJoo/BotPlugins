@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('discord.js');
-// IMPORTANTE: Ahora el paquete se llama @google/genai
 const { GoogleGenAI } = require('@google/genai');
 
 module.exports = {
@@ -17,29 +16,24 @@ module.exports = {
         const prompt = interaction.options.getString('ask');
         const apiKey = process.env.GEMINI_API_KEY;
 
-        if (!apiKey) {
-            return interaction.editReply('❌ Error: La API Key no está configurada.');
-        }
-
         try {
-            // Inicializamos con el nuevo SDK
             const client = new GoogleGenAI({
                 apiKey: apiKey,
-                apiVersion: 'v1' // Forzamos la versión estable v1 para evitar errores 404
             });
 
-            // Generamos contenido usando la estructura del nuevo SDK
-            // Nota: El modelo gemini-1.5-flash ya es estable en v1
+            // CAMBIO: Usamos gemini-2.0-flash (Estándar en 2026)
+            // Simplificamos 'contents' pasando el prompt directamente
             const response = await client.models.generateContent({
-                model: 'gemini-1.5-flash', 
-                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+                model: 'gemini-2.0-flash', 
+                contents: prompt 
             });
 
-            const text = response.candidates[0].content.parts[0].text;
+            // El nuevo SDK devuelve el texto de forma más directa
+            const text = response.text; 
 
-            if (!text) throw new Error("Respuesta vacía de la IA.");
+            if (!text) throw new Error("La IA no generó respuesta.");
 
-            // Sistema de troceado de mensajes para Discord (límite 2000 caracteres)
+            // Sistema de división de mensajes (Límite 2000 caracteres)
             if (text.length > 2000) {
                 const chunks = text.match(/[\s\S]{1,1900}/g) || [];
                 for (let i = 0; i < chunks.length; i++) {
@@ -51,8 +45,14 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Error con el nuevo SDK:', error);
-            await interaction.editReply('❌ Error al conectar con la IA. Asegúrate de haber instalado `@google/genai`.');
+            console.error('Error detallado:', error);
+            
+            // Si el 404 persiste, es posible que el nombre exacto haya cambiado
+            if (error.status === 404) {
+                await interaction.editReply('❌ Error: El modelo gemini-2.0-flash no responde. Intenta con "gemini-2.0-pro" o contacta al admin.');
+            } else {
+                await interaction.editReply('❌ Hubo un error al procesar tu pregunta.');
+            }
         }
     },
 };
