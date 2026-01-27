@@ -21,19 +21,15 @@ module.exports = {
                 apiKey: apiKey,
             });
 
-            // CAMBIO: Usamos gemini-2.0-flash (Estándar en 2026)
-            // Simplificamos 'contents' pasando el prompt directamente
             const response = await client.models.generateContent({
-                model: 'gemini-2.0-flash', 
+                model: 'models/gemini-2.5-flash', 
                 contents: prompt 
             });
 
-            // El nuevo SDK devuelve el texto de forma más directa
             const text = response.text; 
 
-            if (!text) throw new Error("La IA no generó respuesta.");
+            if (!text) throw new Error("La IA no generó una respuesta válida.");
 
-            // Sistema de división de mensajes (Límite 2000 caracteres)
             if (text.length > 2000) {
                 const chunks = text.match(/[\s\S]{1,1900}/g) || [];
                 for (let i = 0; i < chunks.length; i++) {
@@ -45,13 +41,12 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Error detallado:', error);
+            console.error('Error con Gemini 2.5:', error);
             
-            // Si el 404 persiste, es posible que el nombre exacto haya cambiado
-            if (error.status === 404) {
-                await interaction.editReply('❌ Error: El modelo gemini-2.0-flash no responde. Intenta con "gemini-2.0-pro" o contacta al admin.');
+            if (error.status === 403) {
+                await interaction.editReply('❌ Error 403: Tu API Key no tiene acceso al modelo Gemini 2.5 todavía.');
             } else {
-                await interaction.editReply('❌ Hubo un error al procesar tu pregunta.');
+                await interaction.editReply('❌ No pude procesar tu pregunta. Revisa la consola del bot.');
             }
         }
     },
