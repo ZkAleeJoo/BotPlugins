@@ -4,10 +4,10 @@ const { GoogleGenAI } = require('@google/genai');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('ia')
-        .setDescription('Ask what you want to know')
+        .setDescription('Pregunta algo a Zenith (Respuestas breves)')
         .addStringOption(option =>
             option.setName('ask')
-                .setDescription('What you want to know')
+                .setDescription('¿Qué quieres saber?')
                 .setRequired(true)),
 
     async execute(interaction) {
@@ -17,21 +17,20 @@ module.exports = {
         const apiKey = process.env.GEMINI_API_KEY;
 
         try {
-            const client = new GoogleGenAI({
-                apiKey: apiKey,
-            });
+            const client = new GoogleGenAI({ apiKey: apiKey });
 
             const response = await client.models.generateContent({
-                model: 'models/gemini-2.5-flash', 
-                contents: prompt 
+                model: 'models/gemini-2.5-flash',
+                systemInstruction: "Eres Gengar, el asistente de un servidor de plugins. Tu respuesta DEBE ser extremadamente concisa, directa y profesional. No saludes a menos que sea necesario, ve al grano. Si el usuario te pide código, da solo lo esencial.",
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
             });
 
-            const text = response.text; 
+            const text = response.text;
 
-            if (!text) throw new Error("La IA no generó una respuesta válida.");
+            if (!text) throw new Error("Sin respuesta");
 
             if (text.length > 2000) {
-                const chunks = text.match(/[\s\S]{1,1900}/g) || [];
+                const chunks = text.match(/[\s\S]{1,1900}(?=\s|$)/g) || [text.substring(0, 1900)];
                 for (let i = 0; i < chunks.length; i++) {
                     if (i === 0) await interaction.editReply(chunks[i]);
                     else await interaction.followUp(chunks[i]);
@@ -41,13 +40,8 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Error con Gemini 2.5:', error);
-            
-            if (error.status === 403) {
-                await interaction.editReply('❌ Error 403: Tu API Key no tiene acceso al modelo Gemini 2.5 todavía.');
-            } else {
-                await interaction.editReply('❌ No pude procesar tu pregunta. Revisa la consola del bot.');
-            }
+            console.error('Error:', error);
+            await interaction.editReply('⚠️ Hubo un error. Intenta con una pregunta más corta.');
         }
     },
 };
